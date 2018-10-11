@@ -54,31 +54,29 @@ This command creates a Kubernetes cluster with 1 master node of type c5d.large &
 
 To create Kubernetes cluster, use the Kops as YAML command to create cluster.
 
-Create Cluster:
+**Create Cluster**
 
-- `kops create -f ./ref/kops/ack-calico-c5d.yaml --name ack.unbxd.io --state s3://ack-kops-state`
+`kops create -f ./ref/kops/ack-calico-c5d.yaml --name ack.unbxd.io --state s3://ack-kops-state`
 
-Create Secret:
+**Create Secret**
 
-- `kops create secret --name ack.unbxd.io sshpublickey admin -i ./ref/kops/key/kops.key.pub --state s3://ack-kops-state`
+`kops create secret --name ack.unbxd.io sshpublickey admin -i ./ref/kops/key/kops.key.pub --state s3://ack-kops-state`
 
-> **Note**, kops.key.pub is part of a keypair, where public key is kops.key.pub & private being kops.key
+> **Note:** kops.key.pub is part of a keypair, where public key is kops.key.pub & private being kops.key
 
-Update Cluster:
+**Update Cluster**
 
-- `kops update cluster ack.unbxd.io --yes --state s3://ack-kops-state`
+`kops update cluster ack.unbxd.io --yes --state s3://ack-kops-state`
 
+**Validate Cluster**
 
-This creates the cluster. To validate if the cluster is working, use command:
-
-- `kops validate cluster --state s3://ack-kops-state --name ack.unbxd.io` 
+`kops validate cluster --state s3://ack-kops-state --name ack.unbxd.io` 
 
 There are multiple YAML files in [kops](ref/kops) directory, to support different networking & instance types. 
 
-> **Quirks**
+> **Quirks:**
 > Some Instance types are not supported by Kops. Images built using Debian Jessie do not have NVME drivers.
->
-> Workarounds to get the setup working:
+> Workarounds to get the setup working
 >
 > - Use Images from CoreOS. Pass `--image {image_name}` in Kops command. To get the image fire use this script
 >     `curl -s https://coreos.com/dist/aws/aws-stable.json | jq -r '."us-west-2".hvm'`
@@ -87,4 +85,13 @@ There are multiple YAML files in [kops](ref/kops) directory, to support differen
 > RBAC roles are turned off for the test cluster, to support RBAC ClusterRole needs to be defined
 
 ## Preparing Kubernetes Cluster
+
+Following steps are not necessary to run Zookeeper or Solr, however these helps us measure & debug any issues in network. For this demo the we have two YAMLs for both Solr & Zookeeper, one with prepared dependencies and one without.
+
+If you plan to skip this step, use the YAML [ref/kubectl/apps/zk/zk.yaml](ref/kubectl/apps/zk/zk.yaml) for Zookeeper & [ref/kubectl/apps/solr/solr.yaml](ref/kubectl/apps/solr/solr.yaml) for Solr.
+
+### Setting Up Istio
+
+[Istio](https://istio.io) Istio is a service mesh that lets us connect, secure, control and observe serices in our Kubernets network.
+
 
