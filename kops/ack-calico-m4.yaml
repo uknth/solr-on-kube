@@ -4,6 +4,19 @@ metadata:
   creationTimestamp: null
   name: ack.unbxd.io
 spec:
+  kubeAPIServer:
+    admissionControl:
+    - NamespaceLifecycle
+    - LimitRanger
+    - ServiceAccount
+    - PersistentVolumeLabel
+    - DefaultStorageClass
+    - DefaultTolerationSeconds
+    - MutatingAdmissionWebhook
+    - ValidatingAdmissionWebhook
+    - ResourceQuota
+    - NodeRestriction
+    - Priority
   api:
     dns: {}
   authorization:
@@ -68,7 +81,7 @@ metadata:
   name: master-us-east-2a
 spec:
   image: ami-093e794c03f1534e4
-  machineType: c5d.large
+  machineType: m4.large
   maxSize: 1
   minSize: 1
   nodeLabels:
@@ -88,7 +101,7 @@ metadata:
   name: nodes
 spec:
   image: ami-093e794c03f1534e4
-  machineType: c5d.xlarge
+  machineType: m4.xlarge
   maxSize: 3
   minSize: 3
   nodeLabels:

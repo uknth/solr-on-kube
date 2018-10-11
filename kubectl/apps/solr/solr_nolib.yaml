@@ -1,0 +1,139 @@
+# ConfigMap to set up properties
+apiVersion: v1
+kind: ConfigMap
+metadata:
+    name: solr-cm
+data:
+    solrHome: "/store/data"
+    solrPort: "8983"
+    zkHost: "zk-1.zk-svc:2181,zk-2.zk-svc:2181,zk-0.zk-svc:2181"
+    solrLogsDir: "/store/logs"
+
+---
+# Statefulset defines the way solr has to be deployed
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+    name: solr
+spec:
+    selector:
+        matchLabels:
+            app: solr
+    serviceName: solr-svc
+    replicas: 3
+    updateStrategy:
+        type: RollingUpdate
+    podManagementPolicy: Parallel
+    template:
+        metadata:
+            labels:
+                app: solr
+        spec:
+            affinity:
+                podAntiAffinity:
+                    requiredDuringSchedulingIgnoredDuringExecution:
+                          - labelSelector:
+                                matchExpressions:
+                                      - key: "app"
+                                        operator: In
+                                        values:
+                                        - solr
+                            topologyKey: "kubernetes.io/hostname"
+            containers:
+              - name: solr
+                imagePullPolicy: Always
+                image: "uknth/solr:ack-7.5.0-nolib-1"
+                resources:
+                    requests:
+                        memory: "2Gi"
+                        cpu: "2"
+                ports:
+                  - containerPort: 8983
+                    name: client
+                env:
+                  - name: SOLR_HOME
+                    valueFrom:
+                        configMapKeyRef:
+                            name: solr-cm
+                            key: solrHome
+                  - name: SOLR_PORT
+                    valueFrom:
+                        configMapKeyRef:
+                            name: solr-cm
+                            key: solrPort
+                  - name: ZOOK
+                    valueFrom:
+                        configMapKeyRef:
+                            name: solr-cm
+                            key: zkHost
+                  - name: SOLR_LOGS_DIR
+                    valueFrom:
+                        configMapKeyRef:
+                            name: solr-cm
+                            key: solrLogsDir
+                volumeMounts:
+                  - name: solr-vol
+                    mountPath: /store
+            initContainers:
+              - name: init-solr-data
+                image: busybox
+                command: ['sh', '-c', 'mkdir -p /store/data && chown 8983:8983 /store/data']
+                volumeMounts:
+                  - name: solr-vol
+                    mountPath: /store
+              - name: init-solr-logs
+                image: busybox
+                command: ['sh', '-c', 'mkdir -p /store/logs && chown 8983:8983 /store/logs']
+                volumeMounts:
+                  - name: solr-vol
+                    mountPath: /store
+              - name: init-solr-xml
+                image: uknth/solr:ack-7.5.0-6
+                command: ['sh', '-c', 'cp -rf /opt/solr/solr.xml /store/data/solr.xml']
+                volumeMounts:
+                  - name: solr-vol
+                    mountPath: /store
+            securityContext:
+                runAsUser: 8983
+                fsGroup: 8983
+    volumeClaimTemplates:
+      - metadata:
+            name: solr-vol
+        spec:
+            accessModes: [ "ReadWriteOnce" ]
+            resources:
+                requests:
+                    storage: 20Gi
+
+---
+# Internal Headless services used to communicate between solr nodes
+apiVersion: v1
+kind: Service
+metadata:
+    name: solr-svc
+    labels:
+        app: solr-svc
+spec:
+    ports:
+      - port: 8983
+        name: client
+    clusterIP: None
+    selector:
+        app: solr
+
+---
+# External Service used to access external endpoint
+apiVersion: v1
+kind: Service
+metadata:
+    name: solr-svc-public
+    labels:
+        app: solr
+spec:
+    type: LoadBalancer
+    ports:
+      - port: 80
+        targetPort: client
+    selector:
+        app: solr
+
