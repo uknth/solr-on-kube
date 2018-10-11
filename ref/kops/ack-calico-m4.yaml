@@ -1,0 +1,101 @@
+apiVersion: kops/v1alpha2
+kind: Cluster
+metadata:
+  creationTimestamp: null
+  name: ack.unbxd.io
+spec:
+  api:
+    dns: {}
+  authorization:
+    alwaysAllow: {}
+  channel: stable
+  cloudLabels:
+    Owner: Ujjwal Kanth
+    Source: Activate
+    Team: Activate-Conf
+  cloudProvider: aws
+  configBase: s3://ack-kops-state/ack.unbxd.io
+  dnsZone: ack.unbxd.io
+  etcdClusters:
+  - etcdMembers:
+    - instanceGroup: master-us-east-2a
+      name: a
+    name: main
+  - etcdMembers:
+    - instanceGroup: master-us-east-2a
+      name: a
+    name: events
+  iam:
+    allowContainerRegistry: true
+    legacy: false
+  kubernetesApiAccess:
+  - 0.0.0.0/0
+  kubernetesVersion: 1.10.6
+  masterPublicName: api.ack.unbxd.io
+  networkCIDR: 172.20.0.0/16
+  networking:
+    calico: {}
+  nonMasqueradeCIDR: 100.64.0.0/10
+  sshAccess:
+  - 0.0.0.0/0
+  subnets:
+  - cidr: 172.20.32.0/19
+    name: us-east-2a
+    type: Public
+    zone: us-east-2a
+  - cidr: 172.20.64.0/19
+    name: us-east-2b
+    type: Public
+    zone: us-east-2b
+  - cidr: 172.20.96.0/19
+    name: us-east-2c
+    type: Public
+    zone: us-east-2c
+  topology:
+    dns:
+      type: Public
+    masters: public
+    nodes: public
+
+---
+
+apiVersion: kops/v1alpha2
+kind: InstanceGroup
+metadata:
+  creationTimestamp: null
+  labels:
+    kops.k8s.io/cluster: ack.unbxd.io
+  name: master-us-east-2a
+spec:
+  image: ami-093e794c03f1534e4
+  machineType: m4.large
+  maxSize: 1
+  minSize: 1
+  nodeLabels:
+    kops.k8s.io/instancegroup: master-us-east-2a
+  role: Master
+  subnets:
+  - us-east-2a
+
+---
+
+apiVersion: kops/v1alpha2
+kind: InstanceGroup
+metadata:
+  creationTimestamp: null
+  labels:
+    kops.k8s.io/cluster: ack.unbxd.io
+  name: nodes
+spec:
+  image: ami-093e794c03f1534e4
+  machineType: m4.xlarge
+  maxSize: 3
+  minSize: 3
+  nodeLabels:
+    kops.k8s.io/instancegroup: nodes
+  role: Node
+  rootVolumeSize: 100
+  subnets:
+  - us-east-2a
+  - us-east-2b
+  - us-east-2c
