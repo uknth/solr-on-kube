@@ -20,7 +20,7 @@ spec:
   api:
     dns: {}
   authorization:
-    alwaysAllow: {}
+    rbac: {}
   channel: stable
   cloudLabels:
     Owner: Ujjwal Kanth

@@ -80,6 +80,8 @@ spec:
               topologyKey: "kubernetes.io/hostname"
       containers:
       - name: k8szk
+        securityContext:
+          runAsUser: 1000
         imagePullPolicy: Always
         image: gcr.io/google_samples/k8szk:v3
         resources:
@@ -157,7 +159,6 @@ spec:
         - name: zk-vol
           mountPath: /var/lib/zookeeper
       securityContext:
-        runAsUser: 1000
         fsGroup: 1000
   volumeClaimTemplates:
   - metadata:

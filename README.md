@@ -56,11 +56,11 @@ To create Kubernetes cluster, use the Kops as YAML command to create cluster.
 
 **Create Cluster**
 
-`kops create -f ./ref/kops/ack-calico-c5d.yaml --name ack.unbxd.io --state s3://ack-kops-state`
+`kops create -f ./kops/ack-calico-c5d.yaml --name ack.unbxd.io --state s3://ack-kops-state`
 
 **Create Secret**
 
-`kops create secret --name ack.unbxd.io sshpublickey admin -i ./ref/kops/key/kops.key.pub --state s3://ack-kops-state`
+`kops create secret --name ack.unbxd.io sshpublickey admin -i ./kops/key/kops.key.pub --state s3://ack-kops-state`
 
 > **Note:** kops.key.pub is part of a keypair, where public key is kops.key.pub & private being kops.key
 
@@ -72,7 +72,7 @@ To create Kubernetes cluster, use the Kops as YAML command to create cluster.
 
 `kops validate cluster --state s3://ack-kops-state --name ack.unbxd.io` 
 
-There are multiple YAML files in [kops](ref/kops) directory, to support different networking & instance types. 
+There are multiple YAML files in [kops](kops) directory, to support different networking & instance types. 
 
 > **Quirks:**
 > Some Instance types are not supported by Kops. Images built using Debian Jessie do not have NVME drivers.
@@ -88,10 +88,21 @@ There are multiple YAML files in [kops](ref/kops) directory, to support differen
 
 Following steps are not necessary to run Zookeeper or Solr, however these helps us measure & debug any issues in network. For this demo the we have two YAMLs for both Solr & Zookeeper, one with prepared dependencies and one without.
 
-If you plan to skip this step, use the YAML [ref/kubectl/apps/zk/zk.yaml](ref/kubectl/apps/zk/zk.yaml) for Zookeeper & [ref/kubectl/apps/solr/solr.yaml](ref/kubectl/apps/solr/solr.yaml) for Solr.
+If you plan to skip this step, use the YAML [kubectl/apps/zk/zk.yaml](kubectl/apps/zk/zk.yaml) for Zookeeper & [kubectl/apps/solr/solr.yaml](kubectl/apps/solr/solr.yaml) for Solr.
 
 ### Setting Up Istio
 
 [Istio](https://istio.io) Istio is a service mesh that lets us connect, secure, control and observe serices in our Kubernets network.
+
+#### Create Cluster Using YAML
+
+**Create Crds** 
+
+Istio Creates CustomResourceDefinitions for the cluster. The YAML present at [kubectl/base/istio/crds.yaml](kubectl/base/istio/crds.yaml) can be applied directly to the cluster using 
+
+`kubectl apply -f kubectl/base/istio/crds.yaml`
+
+**Install Istio Base System**
+Istio installs a ton of things along with the base service mesh. These are primarily to visualize and debug any issues present. 
 
 

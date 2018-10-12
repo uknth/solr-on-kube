@@ -41,6 +41,8 @@ spec:
                             topologyKey: "kubernetes.io/hostname"
             containers:
               - name: solr
+                securityContext:
+                    runAsUser: 8983
                 imagePullPolicy: Always
                 image: "uknth/solr:ack-7.5.0-nolib-1"
                 resources:
@@ -94,7 +96,6 @@ spec:
                   - name: solr-vol
                     mountPath: /store
             securityContext:
-                runAsUser: 8983
                 fsGroup: 8983
     volumeClaimTemplates:
       - metadata:
